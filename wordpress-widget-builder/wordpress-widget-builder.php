@@ -3,6 +3,9 @@
 class WWB_Widget extends WP_Widget
 {
 
+    // Our placeholders
+    private $placeholders = array();
+
     // Widget front-end header
     private $title;
 
@@ -15,8 +18,8 @@ class WWB_Widget extends WP_Widget
      */
     function __construct( $widget_id, $widget_title, $widget_description )
     {
-        // Set the widget title that will appear on the front end.
-        $this->prepare_widget_title( $this->fields() );
+        // Parse fields id so placeholder
+        $this->prepare_placeholders( $this->fields() );
 
         // Start WP_Widget
         parent::__construct(
@@ -49,7 +52,7 @@ class WWB_Widget extends WP_Widget
         ob_start();
         $this->view();
         $view = ob_get_clean();
-
+        
         // Replace data with placeholders and hit the screen.
         echo $this->placeholder_replacer( $view, $instance );
 
@@ -83,7 +86,7 @@ class WWB_Widget extends WP_Widget
     public function form( $instance ) 
     {
         foreach ( $this->fields() as $key ) :
-            if ( $key['type'] == 'title' ) :
+            if ( $key['type'] == "title" ) :
                 $key['type'] = 'text';
             endif;
             $this->get_field( $key['type'], $key, $instance );
@@ -108,19 +111,27 @@ class WWB_Widget extends WP_Widget
     }
 
     /**
-     * Let's take the widget title from the fields from the subclass.
+     * We prepare our placeholders according to the "fields" data from the subclass.
      * @param array $fields Data string submitted by the user
      * 
      * @see $this->__construct
      * 
      * @return void
      */
-    private function prepare_widget_title( $fields )
+    private function prepare_placeholders( $fields )
     {
         foreach ( $fields as $key => $field ) :
+
+            foreach ( $field as $key => $value ) :
+                if ( $key == "id" ) :
+                    $this->placeholders[$value] = $value;
+                endif;
+            endforeach;
+
             if ( $field['type'] == "title" ) :
                 $this->title = $field['id'];
             endif;
+
         endforeach;
     }
 
